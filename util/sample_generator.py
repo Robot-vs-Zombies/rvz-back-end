@@ -55,6 +55,7 @@ class World:
             for x in range(x_UL, x_LR):
                 #print( "check: (" + str(x) + "," + str(y) + ")")
                 if self.grid[y][x] is not None:
+                    #print( "intersection" )
                     return True
         #print( "no intersections" )
         return False
@@ -88,15 +89,16 @@ class World:
             number_left = num_rooms - room_count
             max_length = math.sqrt(area_of_board_left - number_left)
 
-            width = int(random.randint(0, int(max_length)) * 0.25)  # - 1
-            height = int(random.randint(0, int(max_length)) * 0.25)  # - 1
-
             #print( "width: " + str(width))
             #print( "height: " + str(height))
 
             # while loop
 
-            for i in range(1, 2):  # while True:
+            while True:
+
+                width = int(random.randint(0, int(max_length)) * 0.25)  # - 1
+                height = int(random.randint(0, int(max_length)) * 0.25)  # - 1
+
                 room_point_x = random.randint(1, self.width - int(width))
                 #print("room_point_x: " + str(room_point_x))
                 room_point_y = random.randint(1, self.height - int(height))
