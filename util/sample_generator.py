@@ -10,7 +10,7 @@ import random
 
 
 class Room:
-    def __init__(self, id, name, description, x, y):
+    def __init__(self, id, name, description, x_UL, y_UL, x_LR, y_LR):
         self.id = id
         self.name = name
         self.description = description
@@ -20,28 +20,52 @@ class Room:
         self.s_to = None
         self.e_to = None
         self.w_to = None
-        self.x = x  # upper left corner of room
-        self.y = y
+        self.x_UL = x_UL
+        self.y_UL = y_UL
+        self.x_LR = x_LR
+        self.y_LR = y_LR
 
-    def __repr__(self):
-        if self.e_to is not None:
-            return f"({self.x}, {self.y}) -> ({self.e_to.x}, {self.e_to.y})"
-        return f"({self.x}, {self.y})"
+    def check_for_neighboring_rooms(self, world):
+        # check to the north
+        if self.y_UL - 1 >= 0:
+            for x in range(self.x_UL, self.x_LR):
+                if world[x][self.y_UL - 1] is not None:
+                    return "neighbor to the north"
+        # check to the south
+        if self.y_LR + 1 < world.height:
+            for x in range(self.x_UL, self.x_LR):
+                if world[x][self.y_LR + 1] is not None:
+                    return "neighbor to the south"
+        # check to the east
+        if self.x_LR + 1 < world.width:
+            for y in range(self.y_UL, self.y_LR, -1):
+                if world[self.x_LR + 1][y] is not None:
+                    return "neighbor to the east"
+        # check to the west
+        if self.x_UL - 1 >= 0:
+            for y in range(self.y_UL, self.y_LR, -1):
+                if world[self.x_UL - 1][y] is not None:
+                    return "neighbor to the west"
 
-    def connect_rooms(self, connecting_room, direction):
-        '''
-        Connect two rooms in the given n/s/e/w direction
-        '''
-        reverse_dirs = {"n": "s", "s": "n", "e": "w", "w": "e"}
-        reverse_dir = reverse_dirs[direction]
-        setattr(self, f"{direction}_to", connecting_room)
-        setattr(connecting_room, f"{reverse_dir}_to", self)
+    # def __repr__(self):
+    #     if self.e_to is not None:
+    #         return f"({self.x}, {self.y}) -> ({self.e_to.x}, {self.e_to.y})"
+    #     return f"({self.x}, {self.y})"
 
-    def get_room_in_direction(self, direction):
-        '''
-        Connect two rooms in the given n/s/e/w direction
-        '''
-        return getattr(self, f"{direction}_to")
+    # def connect_rooms(self, connecting_room, direction):
+    #     '''
+    #     Connect two rooms in the given n/s/e/w direction
+    #     '''
+    #     reverse_dirs = {"n": "s", "s": "n", "e": "w", "w": "e"}
+    #     reverse_dir = reverse_dirs[direction]
+    #     setattr(self, f"{direction}_to", connecting_room)
+    #     setattr(connecting_room, f"{reverse_dir}_to", self)
+
+    # def get_room_in_direction(self, direction):
+    #     '''
+    #     Connect two rooms in the given n/s/e/w direction
+    #     '''
+    #     return getattr(self, f"{direction}_to")
 
 
 class World:
@@ -51,7 +75,7 @@ class World:
         self.height = 1
 
     def check_for_intersections(self, x_UL, y_UL, x_LR, y_LR):
-        for y in range(y_UL, y_LR):
+        for y in range(y_UL, y_LR, -1):
             for x in range(x_UL, x_LR):
                 #print( "check: (" + str(x) + "," + str(y) + ")")
                 if self.grid[y][x] is not None:
@@ -72,17 +96,7 @@ class World:
         for i in range(len(self.grid)):
             self.grid[i] = [None] * size_x
 
-        # Start from lower-left corner (0,0)
-        x = -1  # (this will become 0 on the first step)
-        y = 0
         room_count = 0
-
-        # Start generating rooms to the east
-        direction = 1  # 1: east, -1: west
-
-        # While there are rooms to be created...
-        previous_room = None
-
         # initialize area of board left as the total area
         area_of_board_left = self.width * self.height
         while room_count < num_rooms:
@@ -104,37 +118,24 @@ class World:
                 room_point_y = random.randint(1, self.height - int(height))
                 #print("room_point_y: " + str(room_point_y))
 
-                if self.check_for_intersections(room_point_x, room_point_y, room_point_x + width, room_point_y + height) == False:
+                if self.check_for_intersections(room_point_x, room_point_y, room_point_x + width, room_point_y - height) == False:
                     break
-
-            # Calculate the direction of the room to be created
-            if direction > 0 and x < size_x - 1:
-                room_direction = "e"
-                x += 1
-            elif direction < 0 and x > 0:
-                room_direction = "w"
-                x -= 1
-            else:
-                # If we hit a wall, turn north and reverse direction
-                room_direction = "n"
-                y += 1
-                direction *= -1
 
             # Create a room in the given direction
             room = Room(room_count, "A Generic Room",
-                        "This is a generic room.", x, y)
+                        "This is a generic room.", room_point_x, room_point_y, room_point_x + width, room_point_y - height)
             # Note that in Django, you'll need to save the room after you create it
 
             # Save the room in the World grid
-            for y in range(room_point_y, room_point_y + height):
+            for y in range(room_point_y, room_point_y - height, -1):
                 for x in range(room_point_x, room_point_x + width):
                     self.grid[y][x] = room
 
-            self.grid[y][x] = room
+            # self.grid[y][x] = room
 
-            # Connect the new room to the previous room
-            if previous_room is not None:
-                previous_room.connect_rooms(room, room_direction)
+            # # Connect the new room to the previous room
+            # if previous_room is not None:
+            #     previous_room.connect_rooms(room, room_direction)
 
             # Update iteration variables
             previous_room = room
@@ -167,6 +168,7 @@ class World:
 
         # Print string
         print(out)
+
 
 
 w = World()
