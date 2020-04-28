@@ -75,19 +75,17 @@ class World:
         self.height = 1
 
     def check_for_intersections(self, x_UL, y_UL, x_LR, y_LR):
-        for y in range(y_UL, y_LR, -1):
+        for y in range(y_UL, y_LR - 1, -1):
             for x in range(x_UL, x_LR):
                 #print( "check: (" + str(x) + "," + str(y) + ")")
                 if self.grid[y][x] is not None:
-                    #print( "intersection" )
+                    print("intersection")
                     return True
-        #print( "no intersections" )
+        print("rect: %d, %d, %d, %d" % (x_UL, y_UL, x_LR, y_LR))
+        print("no intersections")
         return False
 
     def generate_rooms(self, size_x, size_y, num_rooms):
-        '''
-        Fill up the grid, bottom to top, in a zig-zag pattern
-        '''
 
         # Initialize the grid
         self.grid = [None] * size_y
@@ -100,6 +98,9 @@ class World:
         # initialize area of board left as the total area
         area_of_board_left = self.width * self.height
         while room_count < num_rooms:
+
+            print("room count: " + str(room_count))
+
             number_left = num_rooms - room_count
             max_length = math.sqrt(area_of_board_left - number_left)
 
@@ -108,27 +109,33 @@ class World:
 
             # while loop
 
+            width = 0
+            height = 0
             while True:
 
-                width = int(random.randint(0, int(max_length)) * 0.25)  # - 1
-                height = int(random.randint(0, int(max_length)) * 0.25)  # - 1
+                width = max(1, int(random.randint(1, int(max_length)) * 0.25))
+                height = max(1, int(random.randint(1, int(max_length)) * 0.25))
 
-                room_point_x = random.randint(1, self.width - int(width))
+                room_point_x = random.randint(0, self.width - width)
                 #print("room_point_x: " + str(room_point_x))
-                room_point_y = random.randint(1, self.height - int(height))
+                room_point_y = random.randint(height, self.height - height)
                 #print("room_point_y: " + str(room_point_y))
 
                 if self.check_for_intersections(room_point_x, room_point_y, room_point_x + width, room_point_y - height) == False:
                     break
 
-            # Create a room in the given direction
+            # subtract room's area from running total
+            area_of_board_left -= width * height
+
             room = Room(room_count, "A Generic Room",
                         "This is a generic room.", room_point_x, room_point_y, room_point_x + width, room_point_y - height)
             # Note that in Django, you'll need to save the room after you create it
 
             # Save the room in the World grid
+            print("w: %d, h: %d" % (width, height))
             for y in range(room_point_y, room_point_y - height, -1):
                 for x in range(room_point_x, room_point_x + width):
+                    print("place %d, %d" % (x, y))
                     self.grid[y][x] = room
 
             # self.grid[y][x] = room
@@ -155,10 +162,11 @@ class World:
         reverse_grid = list(self.grid)  # make a copy of the list
         reverse_grid.reverse()
         for row in reverse_grid:
-            # str += "#"
+            out += "# "
             for room in row:
                 if room is not None:
-                    out += " " + str(room.id % 10) + " "
+                    out += " %02d" % (room.id,)
+                    #out += " " + str(room.id) + " "
                 else:
                     out += "   "
             out += "#\n"
