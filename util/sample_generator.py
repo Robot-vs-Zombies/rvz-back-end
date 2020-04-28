@@ -169,14 +169,13 @@ class World:
                     #out += " " + str(room.id) + " "
                 else:
                     out += "   "
-            out += "#\n"
+            out += " #\n"
 
         # Add bottom border
         out += "# " * ((3 + self.width * 3) // 2) + "\n"
 
         # Print string
         print(out)
-
 
 
 w = World()
