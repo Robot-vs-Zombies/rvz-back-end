@@ -5,22 +5,29 @@
 # procedural generation algorithm and use print_rooms()
 # to see the world.
 
+import math
+import random
+
 
 class Room:
     def __init__(self, id, name, description, x, y):
         self.id = id
         self.name = name
         self.description = description
+        self.width = 1
+        self.height = 1
         self.n_to = None
         self.s_to = None
         self.e_to = None
         self.w_to = None
-        self.x = x
+        self.x = x  # upper left corner of room
         self.y = y
+
     def __repr__(self):
         if self.e_to is not None:
             return f"({self.x}, {self.y}) -> ({self.e_to.x}, {self.e_to.y})"
         return f"({self.x}, {self.y})"
+
     def connect_rooms(self, connecting_room, direction):
         '''
         Connect two rooms in the given n/s/e/w direction
@@ -29,6 +36,7 @@ class Room:
         reverse_dir = reverse_dirs[direction]
         setattr(self, f"{direction}_to", connecting_room)
         setattr(connecting_room, f"{reverse_dir}_to", self)
+
     def get_room_in_direction(self, direction):
         '''
         Connect two rooms in the given n/s/e/w direction
@@ -39,8 +47,18 @@ class Room:
 class World:
     def __init__(self):
         self.grid = None
-        self.width = 0
-        self.height = 0
+        self.width = 1
+        self.height = 1
+
+    def check_for_intersections(self, x_UL, y_UL, x_LR, y_LR):
+        for y in range(y_UL, y_LR):
+            for x in range(x_UL, x_LR):
+                #print( "check: (" + str(x) + "," + str(y) + ")")
+                if self.grid[y][x] is not None:
+                    return True
+        #print( "no intersections" )
+        return False
+
     def generate_rooms(self, size_x, size_y, num_rooms):
         '''
         Fill up the grid, bottom to top, in a zig-zag pattern
@@ -50,21 +68,42 @@ class World:
         self.grid = [None] * size_y
         self.width = size_x
         self.height = size_y
-        for i in range( len(self.grid) ):
+        for i in range(len(self.grid)):
             self.grid[i] = [None] * size_x
 
         # Start from lower-left corner (0,0)
-        x = -1 # (this will become 0 on the first step)
+        x = -1  # (this will become 0 on the first step)
         y = 0
         room_count = 0
 
         # Start generating rooms to the east
         direction = 1  # 1: east, -1: west
 
-
         # While there are rooms to be created...
         previous_room = None
+
+        # initialize area of board left as the total area
+        area_of_board_left = self.width * self.height
         while room_count < num_rooms:
+            number_left = num_rooms - room_count
+            max_length = math.sqrt(area_of_board_left - number_left)
+
+            width = int(random.randint(0, int(max_length)) * 0.25)  # - 1
+            height = int(random.randint(0, int(max_length)) * 0.25)  # - 1
+
+            #print( "width: " + str(width))
+            #print( "height: " + str(height))
+
+            # while loop
+
+            for i in range(1, 2):  # while True:
+                room_point_x = random.randint(1, self.width - int(width))
+                #print("room_point_x: " + str(room_point_x))
+                room_point_y = random.randint(1, self.height - int(height))
+                #print("room_point_y: " + str(room_point_y))
+
+                if self.check_for_intersections(room_point_x, room_point_y, room_point_x + width, room_point_y + height) == False:
+                    break
 
             # Calculate the direction of the room to be created
             if direction > 0 and x < size_x - 1:
@@ -80,10 +119,15 @@ class World:
                 direction *= -1
 
             # Create a room in the given direction
-            room = Room(room_count, "A Generic Room", "This is a generic room.", x, y)
+            room = Room(room_count, "A Generic Room",
+                        "This is a generic room.", x, y)
             # Note that in Django, you'll need to save the room after you create it
 
             # Save the room in the World grid
+            for y in range(room_point_y, room_point_y + height):
+                for x in range(room_point_x, room_point_x + width):
+                    self.grid[y][x] = room
+
             self.grid[y][x] = room
 
             # Connect the new room to the previous room
@@ -94,69 +138,42 @@ class World:
             previous_room = room
             room_count += 1
 
-
-
     def print_rooms(self):
         '''
         Print the rooms in room_grid in ascii characters.
         '''
 
         # Add top border
-        str = "# " * ((3 + self.width * 5) // 2) + "\n"
+        out = "# " * ((3 + self.width * 3) // 2) + "\n"
 
         # The console prints top to bottom but our array is arranged
         # bottom to top.
-        #
-        # We reverse it so it draws in the right direction.
-        reverse_grid = list(self.grid) # make a copy of the list
+
+        reverse_grid = list(self.grid)  # make a copy of the list
         reverse_grid.reverse()
         for row in reverse_grid:
-            # PRINT NORTH CONNECTION ROW
-            str += "#"
+            # str += "#"
             for room in row:
-                if room is not None and room.n_to is not None:
-                    str += "  |  "
-                else:
-                    str += "     "
-            str += "#\n"
-            # PRINT ROOM ROW
-            str += "#"
-            for room in row:
-                if room is not None and room.w_to is not None:
-                    str += "-"
-                else:
-                    str += " "
                 if room is not None:
-                    str += f"{room.id}".zfill(3)
+                    out += " " + str(room.id % 10) + " "
                 else:
-                    str += "   "
-                if room is not None and room.e_to is not None:
-                    str += "-"
-                else:
-                    str += " "
-            str += "#\n"
-            # PRINT SOUTH CONNECTION ROW
-            str += "#"
-            for room in row:
-                if room is not None and room.s_to is not None:
-                    str += "  |  "
-                else:
-                    str += "     "
-            str += "#\n"
+                    out += "   "
+            out += "#\n"
 
         # Add bottom border
-        str += "# " * ((3 + self.width * 5) // 2) + "\n"
+        out += "# " * ((3 + self.width * 3) // 2) + "\n"
 
         # Print string
-        print(str)
+        print(out)
 
 
 w = World()
 num_rooms = 44
-width = 8
-height = 7
+width = 15
+height = 30
 w.generate_rooms(width, height, num_rooms)
 w.print_rooms()
 
 
-print(f"\n\nWorld\n  height: {height}\n  width: {width},\n  num_rooms: {num_rooms}\n")
+print(
+    f"\n\nWorld\n  height: {height}\n  width: {width},\n  num_rooms: {num_rooms}\n")
