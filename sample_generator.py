@@ -18,6 +18,7 @@ class Player:
         self.x = world.width // 2
         self.y = world.height - 1
         self.sprite = Fore.RED + " XX"
+        self.inventory = {}
 
     def send_message(self, message):
         print(Fore.GREEN + "\n \n" + message + "\n \n")
@@ -69,11 +70,35 @@ class Player:
         if reverse_grid[self.y][self.x - 1].type == "wall":
             os.system('clear')
             world.print_world(self)
-            self.send_message("do try not to run into walls...", "RED")
+            self.send_message("do try not to run into walls...")
         else:
             os.system('clear')
             self.x -= 1
             world.print_world(self)
+
+
+class Item:
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
+
+
+class Cure:
+    def __init__(self, name, description):
+        Item.__init__(self, name, description)
+        self.type = "cure"
+
+
+class Weapon:
+    def __init__(self, name, description):
+        Item.__init__(self, name, description)
+        self.type = "weapon"
+
+
+class Treasure:
+    def __init__(self, name, description):
+        Item.__init__(self, name, description)
+        self.type = "treasure"
 
 
 class Tile:
@@ -303,7 +328,6 @@ class World:
         print(out)
 
 
-
 num_rooms = 10
 width = 20
 height = 17
@@ -316,7 +340,6 @@ w.print_world(j)
 
 # print(
 #     f"\n\nWorld\n  height: {height}\n  width: {width},\n  num_rooms: {num_rooms}\n")
-
 
 
 def explore(player, world):
