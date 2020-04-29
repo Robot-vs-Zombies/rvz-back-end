@@ -1,9 +1,4 @@
-# Sample Python code that can be used to generate rooms in
-# a zig-zag pattern.
-#
-# You can modify generate_rooms() to create your own
-# procedural generation algorithm and use print_world()
-# to see the world.
+
 
 import math
 import random
@@ -19,9 +14,18 @@ class Player:
         self.y = world.height - 1
         self.sprite = Fore.RED + " XX"
         self.inventory = {}
+        self.health = 100
 
     def send_message(self, message):
         print(Fore.GREEN + "\n \n" + message + "\n \n")
+
+    def describe_surroundings(self, world):
+        reverse_grid = list(world.grid)  # make a copy of the list
+        reverse_grid.reverse()
+        room = reverse_grid[self.y][self.x].room
+        if room.id != 0:
+            print(Fore.GREEN + "\n \n" + room.name + ": " + Style.RESET_ALL + room.description + "\n \n" + "You see a " +
+                  Fore.GREEN + room.treasure.name + Style.RESET_ALL + "\n \n" + room.treasure.description + "\n \n")
 
     def move_up(self, world):
 
@@ -85,7 +89,7 @@ class Item:
 
 class Cure:
     def __init__(self, name, description):
-        Item.__init__(self, name, description)
+        Item.__init__(self, "cure", "Objective completed!")
         self.type = "cure"
 
 
@@ -115,8 +119,52 @@ class Tile:
         self.type = "door"
 
 
+rooms = [
+    {"name": "Claire's Accessories",
+        "description": "It seems that before the 'incident' there was a great buy 6 get 2 free sale on plastic earrings"},
+    {"name": "Wetzel's Pretzels",
+     "description": "Six-month-old melted pretzel cheese is still cooking in the kitchen"},
+    {"name": "JC Penny", "description": "Clothes are scattered across the floor. Overall a pretty normal JC Penny."},
+    {"name": "AMC Theatres", "description": "Burned popcorn covers the floor. A bloodied message on the ticket counter glass reads 'HELP'"},
+    {"name": "Orange Julius",
+     "description": "The once frozen orange juice concentrate has something green growing in it."},
+    {"name": "Arcade", "description": "Surprisingly all of the game consoles are still working"},
+    {"name": "Macy's", "description": "The store is almost entirely empty. Were the employees able to escape with some merchandise?"},
+    {"name": "Abercrombie & Fitch", "description": "These still exist?"},
+    {"name": "Apple Store",
+     "description": "Shattered glass covers the floor. Not a great place to be in an emergency"},
+    {"name": "Cinnabon", "description": "Is this supposed to be a place for human dessert or human breakfast?"},
+    {"name": "The Gap", "description": "Strangely named. The store lacks floor spaces of any kind."},
+    {"name": "The Body Shop", "description": "Aptly named. The floor is covered in those who didn't survive and yet failed to be turned."},
+    {"name": "Post Office", "description": "Where humans send letters."},
+    {"name": "Vans", "description": "Boxes of stylish rubber sneakers line the walls."},
+    {"name": "7 for all Mankind",
+     "description": "Fallen over racks of jeans make it difficult to enter this unlit store for jeans."}
+]
+
+treasures = [
+    {"name": "Movie Ticket Coupon",
+        "description": "After I find the cure, I can use this to see a movie. I hope Chris Pratt has survived this."},
+    {"name": "Wallet", "description": "I should try to return this later. It has $23 and some change."},
+    {"name": "Can of Grape Soda",
+     "description": "Maybe I can ask for an upgrade to allow me to taste. Looks interesting."},
+    {"name": "Wad of Cash", "description": "I think someone must have taken the cash from a cash register and wrapped it in rubber bands."},
+    {"name": "Pack of Arcade Tokens",
+     "description": "Tokens to play games at the arcade. Sounds fun."}
+]
+
+weapons = [
+    {"name": "Ear Piercing Gun",
+        "description": "It's covered in blood and dead skin. Still, I could use this.", "power": 3},
+    {"name": "Taser", "description": "Did this belong to a security guard?", "power": 4},
+    {"name": "Fire Extinguisher",
+     "description": "This wasn't meant to be a weapon, but I could hit someone with it.", "power": 1},
+    {"name": "Knife", "description": "I'd rather not come into such close contact, but it's better than nothing", "power": 4}
+]
+
+
 class Room:
-    def __init__(self, id, name, description, x_UL, y_UL, x_LR, y_LR):
+    def __init__(self, id, name, description, x_UL, y_UL, x_LR, y_LR, treasure):
         self.id = id
         self.name = name
         self.description = description
@@ -126,6 +174,7 @@ class Room:
         self.y_UL = y_UL
         self.x_LR = x_LR
         self.y_LR = y_LR
+        self.treasure = treasure
 
     def check_for_neighboring_rooms(self, world):
         # check to the north
@@ -172,7 +221,6 @@ class World:
         return False
 
     def generate_rooms(self, size_x, size_y, num_rooms):
-
         # Initialize the grid
         self.grid = [None] * size_y
         self.width = size_x
@@ -226,30 +274,36 @@ class World:
 
             # Save the room in the World grid
             #print( "w: %d, h: %d" % (width, height) )
-            room = Room(room_count, "A Generic Room", "This is a generic room.",
-                        room_point_x, room_point_y, room_point_x + width, room_point_y - height)
+
+            room_id = random.randint(0, len(rooms) - 1)
+            treasure_id = random.randint(0, len(treasures) - 1)
+            treasure = Treasure(
+                treasures[treasure_id]["name"], treasures[treasure_id]["description"])
+            room = Room(room_count, rooms[room_id]["name"], rooms[room_id]["description"],
+                        room_point_x, room_point_y, room_point_x + width, room_point_y - height, treasure)
+
             for y in range(room_point_y, room_point_y - height, -1):
                 for x in range(room_point_x, room_point_x + width):
                     #print( "place %d, %d" % (x, y) )
                     self.grid[y][x] = Tile(x, y, room)
 
-          # add northern wall
+            # add northern wall
             for x in range(room_point_x, room_point_x + width):
                 self.grid[room_point_y][x].build_wall()
-          # add southern wall
+            # add southern wall
             for x in range(room_point_x, room_point_x + width):
                 # print(str(x), str(y))
                 self.grid[room_point_y - height + 1][x].build_wall()
-          # add eastern wall
+            # add eastern wall
             for y in range(room_point_y, room_point_y - height, -1):
                 self.grid[y][room_point_x + width - 1].build_wall()
 
-          # add western wall
+            # add western wall
 
             for y in range(room_point_y, room_point_y - height, -1):
                 self.grid[y][room_point_x].build_wall()
 
-          # add northern door
+            # add northern door
 
             # get x position
             x_position = (room_point_x + room_point_x + width) // 2
@@ -258,7 +312,7 @@ class World:
 
             self.grid[y_position][x_position].build_door()
 
-          # add southern door
+            # add southern door
 
             # get x position
             x_position = (room_point_x + room_point_x + width) // 2
@@ -279,7 +333,7 @@ class World:
 
             for x in range(self.x_UL, self.x_LR):
                 empty_room = Room(0, "An Empty Space",
-                                  "This is an empty space", x, y, x, y)
+                                  "This is an empty space", x, y, x, y, {"name": "none", "description": "none"})
                 #print( "check: (" + str(x) + "," + str(y) + ")")
                 # print( "checking (%d, %d)" % (x,y) )
                 if self.grid[y][x] is None:
@@ -352,23 +406,28 @@ def explore(player, world):
         # user chooses up
         if user == 1:
             player.move_up(world)
+            player.describe_surroundings(world)
 
         # user chooses right
         elif user == 2:
             player.move_right(world)
+            player.describe_surroundings(world)
 
         # user chooses down
         elif user == 3:
             player.move_down(world)
+            player.describe_surroundings(world)
 
         # user chooses left
         elif user == 4:
             player.move_left(world)
+            player.describe_surroundings(world)
 
         elif user == 5:
             pass
 
         elif user == 9:
+            os.system('clear')
             pass
 
         else:
