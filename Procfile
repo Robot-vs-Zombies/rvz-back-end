@@ -1,1 +1,1 @@
-web: gunicorn adv_project.wsgi:application --log-file -
+web: gunicorn adventure.wsgi:application --log-file -
