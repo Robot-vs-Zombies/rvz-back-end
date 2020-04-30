@@ -104,10 +104,7 @@ roomGraph = {'3700': {'room_id': '3700', 'title': 'Entrance to Mud School', 'des
              '3797': {'room_id': '3797', 'title': 'South West Corner of Arena', 'description': 'You are in the Arena.  Remember, if you wish to get out of this Arena, the\nexit can be found to the east.  Ceilings can barely be seen in this huge Arena.\nYou feel as if you are being watched by some divine being.\n', 'exits': {'n': '3780', 'e': '3733'}, 'x': '2', 'y': '8'},
              '3798': {'room_id': '3798', 'title': 'South West Corner of Arena', 'description': 'You are in the Arena.  Remember, if you wish to get out of this Arena, the\nexit can be found to the east.  Ceilings can barely be seen in this huge Arena.\nYou feel as if you are being watched by some divine being.\n', 'exits': {'n': '3750', 'e': '3743'}, 'x': '2', 'y': '8'},
              '3799': {'room_id': '3799', 'title': 'South West Corner of Arena', 'description': 'You are in the Arena.  Remember, if you wish to get out of this Arena, the\nexit can be found to the east.  Ceilings can barely be seen in this huge Arena.\nYou feel as if you are being watched by some divine being.\n', 'exits': {'n': '3794', 'e': '3795'}, 'x': '2', 'y': '8'},
-             '3800': {'room_id': '3800', 'title': 'South West Corner of Arena', 'description': 'You are in the Arena.  Remember, if you wish to get out of this Arena, the\nexit can be found to the east.  Ceilings can barely be seen in this huge Arena.\nYou feel as if you are being watched by some divine being.\n', 'exits': {'n': '3782', 'e': '3798'}, 'x': '2', 'y': '8'},
-
-
-
+             '3800': {'room_id': '3800', 'title': 'South West Corner of Arena', 'description': 'You are in the Arena.  Remember, if you wish to get out of this Arena, the\nexit can be found to the east.  Ceilings can barely be seen in this huge Arena.\nYou feel as if you are being watched by some divine being.\n', 'exits': {'n': '3782', 'e': '3798'}, 'x': '2', 'y': '8'}}
 
 
 # rooms = [
@@ -131,4 +128,3 @@ roomGraph = {'3700': {'room_id': '3700', 'title': 'Entrance to Mud School', 'des
 #     {"name": "Vans", "description": "Boxes of stylish rubber sneakers line the walls."},
 #     {"name": "7 for all Mankind",
 #      "description": "Fallen over racks of jeans make it difficult to enter this unlit store for jeans."}
-# ]
