@@ -1,15 +1,58 @@
+import inspect
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 import uuid
+import json
+
+
+class World:
+
+    def __init__(self):
+        self.rooms = {}
+
+    def roomFunc(self, roomGraph):
+        newGraph = {}
+        for key in roomGraph.keys():
+            # Convert non-int keys to int
+            newId = int(key)
+            newGraph[newId] = {}
+            # Add views
+            if "views" not in roomGraph[key].keys():
+                newGraph[newId]['views'] = {}
+            newGraph[newId].update(roomGraph[key])
+        roomGraph = newGraph
+
+        for r in roomGraph.keys():
+            current = roomGraph[r]
+            self.rooms[r] = Room(r,
+                                 current['room_id'], current['title'], current['description'], json.dumps(current['views']))
+            self.rooms[r].save()
+
+        for rm in self.rooms.keys():
+            crm = roomGraph[rm]
+            if 'n' in crm['exits']:
+                self.rooms[rm].connectRooms(
+                    self.rooms[int(crm['exits']['n'])], 'n')
+            if 's' in crm['exits']:
+                self.rooms[rm].connectRooms(
+                    self.rooms[int(crm['exits']['s'])], 's')
+            if 'w' in crm['exits']:
+                self.rooms[rm].connectRooms(
+                    self.rooms[int(crm['exits']['w'])], 'w')
+            if 'e' in crm['exits']:
+                self.rooms[rm].connectRooms(
+                    self.rooms[int(crm['exits']['e'])], 'e')
 
 
 class Room(models.Model):
+    room_id = models.IntegerField(default=0)
     title = models.CharField(max_length=50, default="DEFAULT TITLE")
-    description = models.CharField(
-        max_length=500, default="DEFAULT DESCRIPTION")
+    description = models.TextField(
+        default="DEFAULT DESCRIPTION")
+    views = models.TextField(default='')
     n_to = models.IntegerField(default=0)
     s_to = models.IntegerField(default=0)
     e_to = models.IntegerField(default=0)
@@ -70,4 +113,3 @@ def create_user_player(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_player(sender, instance, **kwargs):
     instance.player.save()
-
