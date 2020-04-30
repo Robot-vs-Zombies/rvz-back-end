@@ -9,5 +9,6 @@ urlpatterns = [
     path('login/', views.obtain_auth_token),
     url('init', api.initialize),
     url('move', api.move),
+    url('rooms', api.rooms),
     url('say', api.say)
 ]
