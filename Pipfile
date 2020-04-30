@@ -14,8 +14,10 @@ django-cors-headers = "*"
 gunicorn = "*"
 django-heroku = "*"
 django-rest-api = "*"
-colorama = "*"
 psycopg2-binary = "*"
+dj-database-url = "*"
+whitenoise = "*"
+colorama = "*"
 
 [dev-packages]
 pylint = "*"
